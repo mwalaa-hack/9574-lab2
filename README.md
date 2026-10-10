@@ -19,6 +19,8 @@ test_files/          - Directory monitored by the antivirus
 quarantine/          - Stores files identified as malicious
 directory-info.last  - Previous directory snapshot
 directory-info.new   - Current directory snapshot
+antivirus-cron.sh    - Scans the directory once when triggered by cron
+cron.log             - Stores the cron scan output and errors
 ```
 
 The antivirus script creates the two snapshot files. It uses them to compare the directory contents and detect changes.
@@ -143,3 +145,104 @@ To exit the interactive tool, press `Ctrl+C`.
 - When a file is restored, it is moved back to the monitored directory.
 - Permanently deleting a file removes it from quarantine.
 - The monitored directory and quarantine directory can be changed by editing the DIR and MALICIOUS_DIR variables in the Makefile, or by providing different arguments when running the scripts directly.
+
+## Bonus 1: Cron Job
+
+### Prerequisites
+
+The cron version requires the following:
+
+- Ubuntu Linux
+- Bash
+- Cron service
+- The `antivirus-cron.sh` script
+- A directory to monitor and a quarantine directory
+
+To check if cron is installed, run:
+
+```bash
+crontab -l
+```
+
+If cron is not installed, run:
+
+```bash
+sudo apt update
+sudo apt install cron
+```
+
+Start the cron service and enable it to start automatically at boot:
+
+```bash
+sudo systemctl enable --now cron
+```
+
+### Configuring the Cron Job
+
+1. Open the terminal and go to the project directory:
+
+   ```bash
+   cd ~/Operating_System_labs/9574-lab2
+   ```
+
+2. Make the script executable:
+
+   ```bash
+   chmod +x antivirus-cron.sh
+   ```
+
+3. Run the script manually to make sure it works:
+
+   ```bash
+   ./antivirus-cron.sh test_files quarantine
+   ```
+
+4. Get the absolute path of the project directory:
+
+   ```bash
+   pwd
+   ```
+
+5. Open the user crontab:
+
+   ```bash
+   crontab -e
+   ```
+
+6. Add the following line. Replace the example paths with the actual absolute paths on your system:
+
+   ```cron
+   * * * * * sleep 23; /home/mwalaa/Operating_System_labs/9574-lab2/antivirus-cron.sh /home/mwalaa/Operating_System_labs/9574-lab2/test_files /home/mwalaa/Operating_System_labs/9574-lab2/quarantine >> /home/mwalaa/Operating_System_labs/9574-lab2/cron.log 2>&1
+   ```
+
+7. Save the file and check that the entry was added:
+
+   ```bash
+   crontab -l
+   ```
+
+The cron job runs every minute and waits about 23 seconds before starting the scan. The script checks the monitored directory, moves files that match the flagged extensions or keywords to quarantine, and then exits.
+
+The output and any errors are saved in `cron.log`.
+
+Cron does not support scheduling jobs directly by seconds. The `sleep 23` command delays the scan by approximately 23 seconds after the cron job starts.
+
+To stop the scheduled job, open the crontab again:
+
+```bash
+crontab -e
+```
+
+Remove the antivirus entry and save the file. Make sure not to remove any other cron entries.
+
+### Running the Scan on the Third Friday of Every Month
+
+To run the scan at 12:31 AM on the third Friday of every month, add the following entry to the crontab:
+
+```cron
+31 0 15-21 * * [ "$(date +\%u)" -eq 5 ] && /home/mwalaa/Operating_System_labs/9574-lab2/antivirus-cron.sh /home/mwalaa/Operating_System_labs/9574-lab2/test_files /home/mwalaa/Operating_System_labs/9574-lab2/quarantine
+```
+
+Replace the example paths with the actual absolute paths on your system.
+
+The third Friday of every month falls between the 15th and 21st. The command checks whether the current day is Friday (`5`) and runs the scan only if the date is within that range and the day is Friday.
