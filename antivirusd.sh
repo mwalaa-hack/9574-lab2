@@ -8,6 +8,9 @@ scan_directory()
     do
         if [ -f "$file" ]; then
             filename=$(basename "$file")
+            if [ -f "$whitelist" ] && grep -Fxq "$filename" "$whitelist"; then
+                continue
+            fi
             extension="${filename##*.}"
 
             for flagged in "${flagged_extensions[@]}"
@@ -49,6 +52,7 @@ fi
 dir="$1"
 malicious_dir="$2"
 interval="$3"
+whitelist="$dir/../whitelist.txt"
 flagged_extensions=("exe" "bat" "vbs" "scr" "ps1")
 flagged_keywords=("virus" "trojan" "malware" "worm" "ransomware")
 

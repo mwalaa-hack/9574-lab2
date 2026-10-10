@@ -21,6 +21,7 @@ directory-info.last  - Previous directory snapshot
 directory-info.new   - Current directory snapshot
 antivirus-cron.sh    - Scans the directory once when triggered by cron
 cron.log             - Stores the cron scan output and errors
+whitelist.txt        - Stores filenames of restored files that should be skipped by future scans
 ```
 
 The antivirus script creates the two snapshot files. It uses them to compare the directory contents and detect changes.
@@ -246,3 +247,11 @@ To run the scan at 12:31 AM on the third Friday of every month, add the followin
 Replace the example paths with the actual absolute paths on your system.
 
 The third Friday of every month falls between the 15th and 21st. The command checks whether the current day is Friday (`5`) and runs the scan only if the date is within that range and the day is Friday.
+
+## Bonus 2: Whitelist
+
+- `whitelist.txt` stores the filenames of files that have been restored and marked as false positives.
+- When the user selects option 1 (Restore this file) in `restore.sh`, the script restores the file to the monitored directory and appends its filename to `whitelist.txt`.
+- Before checking a file's extension or contents, both `antivirusd.sh` and `antivirus-cron.sh` check whether its filename appears in `whitelist.txt`.
+- If the filename is found, the scanner skips that file.
+- Since the whitelist is stored in a file, its entries persist across daemon restarts.

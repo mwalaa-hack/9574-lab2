@@ -22,6 +22,11 @@ if [ ! -d "$malicious_dir" ]; then
     exit 1
 fi
 
+
+whitelist="$dir/../whitelist.txt"
+touch "$whitelist"
+
+
 while true
 do
     files=("$malicious_dir"/*)
@@ -64,6 +69,8 @@ do
 
     if [ "$option" -eq 1 ]; then
         mv "$selected_file" "$dir/$filename"
+        echo "$filename" >> "$whitelist"
+        echo "$filename added to whitelist."
         echo "Restored $filename to $dir."
 
     elif [ "$option" -eq 2 ]; then

@@ -9,6 +9,7 @@ fi
 
 dir="$1"
 malicious_dir="$2"
+whitelist="$dir/../whitelist.txt"
 
 
 
@@ -33,6 +34,9 @@ do
     fi
 
     filename=$(basename "$file")
+    if [ -f "$whitelist" ] && grep -Fxq "$filename" "$whitelist"; then
+        continue
+    fi
     extension="${filename##*.}"
 
     for flagged in "${flagged_extensions[@]}"
